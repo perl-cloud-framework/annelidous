@@ -17,8 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-package Annelida::Connector::Xen;
-use base 'Annelida::Connector';
+package Annelidous::Connector::Xen;
+use base 'Annelidous::Connector';
 
 sub new {
 	my $self={};

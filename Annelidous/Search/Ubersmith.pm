@@ -17,10 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-package Annelida::Search::Ubersmith;
+package Annelidous::Search::Ubersmith;
 
 # Inheritance (shorthand for using @INC/require)
-use base ("Annelida::Search");
+use base ("Annelidous::Search");
 
 sub new {
 	my $class=shift;

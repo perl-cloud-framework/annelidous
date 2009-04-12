@@ -17,12 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-package Annelida::Frontend::XenShell::ActiveHandler;
+package Annelidous::Frontend::XenShell::ActiveHandler;
 
 sub TIESCALAR {
 	my $invocant=shift;
     my $self={};
-    bless $self, 'Annelida::Frontend::XenShell::ActiveHandler';
+    bless $self, 'Annelidous::Frontend::XenShell::ActiveHandler';
     $self->{vm}=shift;
     return $self;
 }

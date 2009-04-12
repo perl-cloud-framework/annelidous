@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-package Annelida::Search;
+package Annelidous::Search;
 
 use strict;
 
@@ -36,10 +36,10 @@ sub new {
 	#
 	# If we were given a subclass, then return an object of that
 	# subclass instead.  This way, for instance, you can create a new
-	# search based on the Annelida::Search::XenCfgDir module with the
+	# search based on the Annelidous::Search::XenCfgDir module with the
 	# following code:
 	#	
-	# PERL> new Annelida::Search(subclass=>'Annelida::Search::XenCfgDir')
+	# PERL> new Annelidous::Search(subclass=>'Annelidous::Search::XenCfgDir')
 	#
 	# While users could just do this directly, doing it this way allows
 	# code based on this module to store the subclass as a configuration
