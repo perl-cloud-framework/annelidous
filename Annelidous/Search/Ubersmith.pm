@@ -1,0 +1,127 @@
+package Annelida::Search::Ubersmith;
+
+# Inheritance (shorthand for using @INC/require)
+use base ("Annelida::Search");
+
+sub new {
+	my $class=shift;
+	my $self={
+	    dbh=>undef,
+	    @_
+	};
+	bless $self, $class;
+	return $self;
+}
+
+#
+# Memory lookup table.
+# TODO: lookup_mem is static, must be made dynamic...
+#
+sub lookup_mem {
+    my $self=shift;
+    my $plan=shift;
+    #$self->memhash{$plan};
+    my $memhash={
+        vi05=>64,
+        vi06=>64,
+        vi10=>128,
+        vi11=>128,
+        vi20=>256,
+        vi40=>512,
+        gvs=>96,
+        gvm=>128,
+        gvl=>256,
+        gvx=>512
+    };
+    return $memhash->{$plan};
+}
+
+#
+# The base find method on which the others are built.
+#
+sub find {
+    my $self=shift;
+    my $where=shift;
+    my @args=@_;
+    my @cl=$self->db_fetch("select distinct first as first_name,last as last_name,username,code as plan,email, desserv as description,PACKAGES.packid as package_id from PACKAGES join CLIENT on PACKAGES.clientid=CLIENT.clientid join plans on plans.plan_id=PACKAGES.plan_id where PACKAGES.active=1 ".$where, @args);
+
+    # strcmp to detect an ipv4 address which is specified in ipv6 notation with "0000::" prefix
+    my $sth=$self->{dbh}->prepare("select INET_NTOA(conv(addr,16,10)) as ip from ip_assignments where ip_assignments.service_id=? and strcmp('0000',substr(addr,1,4))=0");
+
+    # IPv6 addresses
+    # We have a simple, but long, conversion from an IPv6 address without separators, to one with separators.
+    my $sth6=$self->{dbh}->prepare("select concat(substr(addr,1,4),':',substr(addr,5,4),':',substr(addr,9,4),':',substr(addr,13,4),':',substr(addr,17,4),':',substr(addr,21,4),':',substr(addr,25,4),':',substr(addr,29,4),substr(addr,33,4)) as ip6 from ip_assignments where ip_assignments.service_id=? and strcmp('0000',substr(addr,1,4))");
+
+    foreach my $client (@cl) {
+		$client->{'memory'}=$self->lookup_mem($client->{'plan'});
+        
+        $sth->execute($client->{'package_id'});
+        my @ip4;
+        while (my $addrinfo=$sth->fetchrow_hashref) {
+            push @ip4, $addrinfo->{'ip'};
+        }
+
+        $sth6->execute($client->{'package_id'});
+        my @ip6;
+        while (my $addrinfo=$sth6->fetchrow_hashref) {
+            push @ip6, $addrinfo->{'ip6'};
+        }
+
+        $client->{'ip6'}=join ' ', @ip6;
+        $client->{'ip4'}=join ' ', @ip4;
+        $client->{'ip'}=join ' ', ($client->{'ip4'}, $client->{'ip6'});
+
+        my $ip6router;
+        if ($client->{'ip6'}) {
+        $client->{'ip6'} =~ /(.*).(\/\w+)/;
+        $client->{'ip6router'}=$1."1".$2;
+
+        my $ip6in4=$ip4[0];
+        $ip6in4 =~ s/\./:/g;
+        $client->{'ip6'} =~ /^(\w+:\w+:\w+:\w+:)/;
+        $client->{'ip6in4'} = $1.$ip6in4;
+           
+    }
+
+    }
+    $sth->finish();
+    $sth6->finish();
+    return @cl;
+}
+
+#
+# Fetches all clients
+#
+sub find_all {
+    my $self=shift;
+    return $self->find("");
+}
+
+#
+# Fetches clients based on username
+#
+sub find_byusername {
+    my $self=shift;
+    my $username=shift;
+    return $self->find("and username regexp ?", $username);
+}
+
+#
+# Fetches clients based on email address
+#
+sub find_bymail {
+    my $self=shift;
+    my $email=shift;
+    return $self->find ("and email=?", $email);
+}
+
+#
+# Fetches clients based on their host
+#
+sub find_byhost {
+    #my $self=shift;
+    my $hostname=shift;
+    return $self->find ("and servername=?", $hostname);
+}
+
+1;
