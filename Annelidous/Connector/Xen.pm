@@ -21,8 +21,15 @@ package Annelidous::Connector::Xen;
 use base 'Annelidous::Connector';
 
 sub new {
-	my $self={};
+	my $self={
+	    transport=>'Annelidous::Transport::SSH',
+	    account=>undef,
+	    @_
+	};
 	bless $self, shift;
+	
+	# Initialize a new transport.
+	$self->{_transport}=exec "new $self->{transport} (".'$self->{account})};';
 	return $self;
 }
 
@@ -30,17 +37,23 @@ sub new {
 # takes a client_pool as argument 
 sub boot {
     my $self=shift;
-    my $hostname=shift;
-    my $bitness=shift;
-
+    my $guest=$self->{account};
+    my $bitness=$guest->{bitness};
+       
+    my $hostname;
+    if (defined ($guest->{host})) {
+        $hostname=$guest->{host};
+    } elsif (defined ($guest->{cluster})) {
+        $hostname=$self->parent->search->get_cluster($guest->{cluster})->get_host;
+    } else {
+        $hostname=$self->parent->search->get_default_cluster()->get_host;
+    }
+    
     #my @userinfo=getpwent($guest->{username});
     #my $homedir=$userinfo[7];
 
-    # replace any C/v/Vs with c'
-    $guest->{username} =~ s/^(c|v)?/c/i;
-
     print "Starting guest: ".$guest->{username}."\n";
-    my @exec=("ssh","-l","root",$hostname,"xm","create",
+    my @exec=("xm","create",
     "/dev/null",
     "name='".$guest->{username}."'",
     "kernel='/boot/xen/vmlinuz-".$bitness."'",
@@ -54,7 +67,7 @@ sub boot {
     "extra='3 console=xvc0'",
     "vcpus=1");
     print join " ", @exec;
-    system (@exec);
+    $self->transport->exec(@exec);
 
     # Configure IPv6 router IP for vif (no proxy arp here, we give a whole subnet)
     if ($guest->{'ip6router'}) {
@@ -62,6 +75,36 @@ sub boot {
         print join " ", @exec2;
         system (@exec2);
     }
+}
+
+sub reboot {
+    my $self=shift;
+    $self->shutdown();
+    $self->boot();
+}
+
+sub shutdown {
+    my $self=shift;
+    $self->transport->exec("xm","shutdown",$self->{account}->{username});
+}
+
+sub console {
+    my $self=shift;
+    # TODO: IMPLEMENT Xen Console
+    # provided is a suggested layout for this method...
+    #my $cap=new Annelidous::Capabilities;
+    #$cap->add("serial");
+    # Get the console here.
+    #$self->transport->exec("xm");
+    #if () {
+    #    $cap->add("tty");
+    #} else {
+    #    $cap->add("vnc");
+    #}
+}
+
+sub transport {
+    shift->{_transport};
 }
 
 1;
