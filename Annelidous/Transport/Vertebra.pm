@@ -18,6 +18,7 @@
 #
 
 #
+# TODO: Finish Transport::Vertebra
 # STUB: This file is only a stub!
 #
 package Annelidous::Transport::Vertebra;

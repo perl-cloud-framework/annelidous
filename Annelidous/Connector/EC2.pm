@@ -18,6 +18,7 @@
 #
 
 #
+# TODO: Finish Connector::EC2
 # STUB: This file is only a stub! Untested, unworking!
 #
 package Annelidous::Connector::EC2;
