@@ -18,7 +18,7 @@
 #
 
 #
-# STUB: This file is only stub!
+# STUB: This file is only a stub!
 #
 package Annelidous::Transport::Vertebra;
 use base 'Annelidous::Transport';

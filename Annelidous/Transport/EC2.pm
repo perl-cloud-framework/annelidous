@@ -18,42 +18,24 @@
 #
 
 #
-# STUB: This file is only a stub! Untested, unworking!
+# STUB: This file is only a stub!
 #
-package Annelidous::Connector::Vertebra::Xen;
-use base 'Annelidous::Connector';
+package Annelidous::Transport::Vertebra;
+use base ('Annelidous::Transport','Net::Amazon::EC2');
 
+use Net::Amazon::EC2;
+
+#
+# We're actually subclassing Net::Amazon::EC2
+# so there isn't a whole lot this module has to do directly (yet)
+#
 sub new {
 	my $self={
-	    transport=>'Annelidous::Transport::Vertebra',
 	    account=>undef,
 	    @_
 	};
 	bless $self, shift;
-	
-	# Initialize a new transport.
-	$self->{_transport}=exec "new $self->{transport} (".'$self->{account})};';
 	return $self;
-}
-
-# Launch client guest OS...
-# takes a client_pool as argument 
-sub boot {
-    my $self=shift;
-    $self->transport->exec('/slice/create',{slice=>$self->{account}->{username}});
-}
-
-sub shutdown {
-    my $self=shift;
-    $self->transport->exec('/slice/shutdown',{slice=>$self->{account}->{username}});
-}
-
-# Not implemented in vertebra-xen.
-sub console {
-    my $self=shift;
-    my $cap=new Annelidous::Capabilities;
-    $cap->add("noop");
-    return {capabilities=>$cap};
 }
 
 1;

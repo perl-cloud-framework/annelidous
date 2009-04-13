@@ -20,19 +20,23 @@
 #
 # STUB: This file is only a stub! Untested, unworking!
 #
-package Annelidous::Connector::Vertebra::Xen;
+package Annelidous::Connector::EC2;
 use base 'Annelidous::Connector';
 
 sub new {
 	my $self={
-	    transport=>'Annelidous::Transport::Vertebra',
+	    transport=>'Annelidous::Transport::EC2',
+	    ec2_settings=>{
+            AWSAccessKeyId => 'PUBLIC_KEY_HERE', 
+            SecretAccessKey => 'SECRET_KEY_HERE'
+	    },
 	    account=>undef,
 	    @_
 	};
 	bless $self, shift;
 	
 	# Initialize a new transport.
-	$self->{_transport}=exec "new $self->{transport} (".'$self->{account})};';
+	$self->{_transport}=exec "new $self->{transport} (account=>".'$self->{account}, %{$self->{ec2_settings}})};';
 	return $self;
 }
 
@@ -40,20 +44,21 @@ sub new {
 # takes a client_pool as argument 
 sub boot {
     my $self=shift;
-    $self->transport->exec('/slice/create',{slice=>$self->{account}->{username}});
+    $self->transport->run_instances(ImageId => $self->{account}->{username}, MinCount => 1, MaxCount => 1);
 }
 
 sub shutdown {
     my $self=shift;
-    $self->transport->exec('/slice/shutdown',{slice=>$self->{account}->{username}});
+    return $self->transport->terminate_instances(InstanceId => $self->instance->{id});
 }
 
 # Not implemented in vertebra-xen.
 sub console {
     my $self=shift;
+    my $tty=$self->get_console_output(InstanceId => $self->instance->{id});
     my $cap=new Annelidous::Capabilities;
-    $cap->add("noop");
-    return {capabilities=>$cap};
+    $cap->add("tty");
+    return {tty=>$tty, capabilities=>$cap};
 }
-
+ 
 1;
