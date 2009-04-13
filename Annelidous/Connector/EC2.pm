@@ -53,7 +53,8 @@ sub shutdown {
     return $self->transport->terminate_instances(InstanceId => $self->instance->{id});
 }
 
-# Not implemented in vertebra-xen.
+# Not likely to work quite yet, but our EC2 module has the best
+# attempt at an implementation for this yet.
 sub console {
     my $self=shift;
     my $tty=$self->get_console_output(InstanceId => $self->instance->{id});
