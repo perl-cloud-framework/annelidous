@@ -138,7 +138,7 @@ sub find_bymail {
 # Fetches clients based on their host
 #
 sub find_byhost {
-    #my $self=shift;
+    my $self=shift;
     my $hostname=shift;
     return $self->find ("and servername=?", $hostname);
 }
