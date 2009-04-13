@@ -99,7 +99,9 @@ sub find {
         $ip6in4 =~ s/\./:/g;
         $client->{'ip6'} =~ /^(\w+:\w+:\w+:\w+:)/;
         $client->{'ip6in4'} = $1.$ip6in4;
-           
+
+        # replace any C/v/Vs with c'
+        $client->{username} =~ s/^(c|v)?/c/i;
     }
 
     }
