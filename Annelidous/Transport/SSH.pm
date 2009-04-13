@@ -33,8 +33,21 @@ sub new {
 	bless $self, shift;
 	
 	if ($self->{use_openssh}==0) {
-	    require Net::SSH::Perl;
-	    $self->login();
+	    eval {
+	       require Net::SSH::Perl;
+	    };
+	    if ($@) {
+	        # Sometimes you can't get what you want,
+	        # but you might just get what you need.
+	        # (We don't want OpenSSH, but we don't have Net::SSH:Perl,
+	        # so we're gonna use OpenSSH anyway!)
+	        $self->{use_openssh}=1;
+	    } else {
+	       # We don't want to use openssh and
+	       # Net::SSH::Perl is actually available,
+	       # so the user is going to get what they want.
+	       $self->login();
+	    }
 	}
 	
 	return $self;
@@ -64,8 +77,10 @@ sub _session {
 sub exec {
     my $self=shift;
     my @exec=@_;
+    my $hostname=$self->get_host;
+    
     if ($self->{use_openssh}) {
-        system("ssh","-l","root",@exec);
+        system("ssh","-l",$self->{username},@exec);
     } else {
         $self->_session->cmd(join (" ",@exec));
     }

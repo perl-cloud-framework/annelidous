@@ -40,15 +40,6 @@ sub boot {
     my $guest=$self->{account};
     my $bitness=$guest->{bitness};
        
-    my $hostname;
-    if (defined ($guest->{host})) {
-        $hostname=$guest->{host};
-    } elsif (defined ($guest->{cluster})) {
-        $hostname=$self->parent->search->get_cluster($guest->{cluster})->get_host;
-    } else {
-        $hostname=$self->parent->search->get_default_cluster()->get_host;
-    }
-    
     #my @userinfo=getpwent($guest->{username});
     #my $homedir=$userinfo[7];
 
@@ -71,9 +62,9 @@ sub boot {
 
     # Configure IPv6 router IP for vif (no proxy arp here, we give a whole subnet)
     if ($guest->{'ip6router'}) {
-        my @exec2=("ssh","-l","root",$hostname,"ifconfig","inet6","add",$guest->{username},$guest->{ip6router});
+        my @exec2=("ifconfig","inet6","add",$guest->{username},$guest->{ip6router});
         print join " ", @exec2;
-        system (@exec2);
+        $self->transport->exec(@exec2);
     }
 }
 
