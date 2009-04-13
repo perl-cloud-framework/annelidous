@@ -24,6 +24,9 @@
 
 package Annelidous::Utility::Email;
 
+# Email
+use MIME::Lite::TT;
+
 sub new {
 	my $self={
 	    @_

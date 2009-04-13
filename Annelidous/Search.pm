@@ -23,9 +23,6 @@ use strict;
 
 use DBI;
 
-# Email
-use MIME::Lite::TT;
-
 sub new {
 	my $class=shift;
 	my $self={
@@ -66,30 +63,6 @@ sub db_fetch {
 	my $self=shift;
     my $statement=shift;
     return @{$self->{dbh}->selectall_arrayref($statement,{ Slice=>{} }, @_)};
-}
-
-# where @to is a client-list or any array of hashes containing key email.
-# args (template, subject, from, (ClientList) @cl)
-sub email_list {
-	my $self=shift;
-    my $template = shift;
-    my $subject = shift;
-    my $from = shift;
-    my @cl = @_;
-
-    foreach my $client (@cl) {
-        my $msg = MIME::Lite::TT->new(
-            From => $from,
-            To => $client->{'email'},
-            Subject => $subject,
-            Template => $template,
-            TmplOptions => {
-                INCLUDE_PATH => 'email-tmpl'
-            },
-            TmplParams => $client
-        );
-        $msg->send;
-    }
 }
 
 #
