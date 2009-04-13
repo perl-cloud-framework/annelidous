@@ -77,12 +77,6 @@ sub boot {
     }
 }
 
-sub reboot {
-    my $self=shift;
-    $self->shutdown();
-    $self->boot();
-}
-
 sub shutdown {
     my $self=shift;
     $self->transport->exec("xm","shutdown",$self->{account}->{username});
@@ -103,8 +97,5 @@ sub console {
     #}
 }
 
-sub transport {
-    shift->{_transport};
-}
 
 1;
