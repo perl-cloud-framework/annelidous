@@ -17,55 +17,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-package Annelidous::Search;
+# 
+# I didn't want to discard this, it might still be useful.
+# That is why it was moved here to this module...
+#
 
-use strict;
-
-use DBI;
-
-# Email
-use MIME::Lite::TT;
+package Annelidous::Utility::Email;
 
 sub new {
-	my $class=shift;
 	my $self={
-		subclass=>undef,
-		@_
+	    @_
 	};
-
-	#
-	# If we were given a subclass, then return an object of that
-	# subclass instead.  This way, for instance, you can create a new
-	# search based on the Annelidous::Search::XenCfgDir module with the
-	# following code:
-	#	
-	# PERL> new Annelidous::Search(subclass=>'Annelidous::Search::XenCfgDir')
-	#
-	# While users could just do this directly, doing it this way allows
-	# code based on this module to store the subclass as a configuration
-	# variable and just pass the "hard" work to us.
-	#
-	if (defined($self->{subclass})) {
-		eval { 
-			require $self->{subclass};
-			$self=new $self->{subclass};
-		};
-		if ($@) {
-			return {};
-		}
-	} else {
-		bless $self, $class;
-	}
-
+	bless $self, shift;
 	return $self;
-}
-
-# DBI gives us a nice easy way to do this, but
-# it is ugly, so I wrapped it up in a nice package.
-sub db_fetch {
-	my $self=shift;
-    my $statement=shift;
-    return @{$self->{dbh}->selectall_arrayref($statement,{ Slice=>{} }, @_)};
 }
 
 # where @to is a client-list or any array of hashes containing key email.
@@ -90,21 +54,6 @@ sub email_list {
         );
         $msg->send;
     }
-}
-
-#
-# Generic function to find a group/batch,
-# given a search method and a list of search terms...
-#
-sub find_group {
-	my $self=shift;
-    my $method=shift;
-    my @terms=@_;
-    my @result_set;
-    foreach my $t (@terms) {
-        eval("push \@result_set, find_".$method."(\$t);");
-    }
-    return @result_set;
 }
 
 1;
