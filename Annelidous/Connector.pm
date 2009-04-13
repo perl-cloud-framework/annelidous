@@ -31,4 +31,22 @@ sub instance {
 	return $self->{instance};
 }
 
+sub reboot {
+    my $self=shift;
+    $self->shutdown();
+    $self->boot();
+}
+
+sub shutdown {
+    die 'Must override shutdown method.';
+}
+
+sub console {
+    die 'Must override console method.';
+}
+
+sub transport {
+    shift->{_transport};
+}
+
 1;
