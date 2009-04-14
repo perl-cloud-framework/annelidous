@@ -22,14 +22,14 @@ use base 'Annelidous::Connector';
 
 sub new {
 	my $self={
-	    transport=>'Annelidous::Transport::SSH',
-	    account=>undef,
+	    -transport=>'Annelidous::Transport::SSH',
+	    -account=>undef,
 	    @_
 	};
 	bless $self, shift;
 	
 	# Initialize a new transport.
-	$self->{_transport}=exec "new $self->{transport} (".'$self->{account})};';
+	$self->{_transport}=exec "new $self->{-transport} (".'$self->{-account})};';
 	return $self;
 }
 
@@ -37,7 +37,7 @@ sub new {
 # takes a client_pool as argument 
 sub boot {
     my $self=shift;
-    my $guest=$self->{account};
+    my $guest=$self->{-account};
     my $bitness=$guest->{bitness};
        
     #my @userinfo=getpwent($guest->{username});

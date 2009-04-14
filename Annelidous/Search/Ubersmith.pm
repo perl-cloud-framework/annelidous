@@ -25,7 +25,7 @@ use base ("Annelidous::Search");
 sub new {
 	my $class=shift;
 	my $self={
-	    dbh=>undef,
+	    -dbh=>undef,
 	    @_
 	};
 	bless $self, $class;
