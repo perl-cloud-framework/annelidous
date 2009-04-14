@@ -18,23 +18,25 @@
 #
 
 package Annelidous::Frontend::XenShell::ActiveHandler;
+use Annelidous::VM;
 
 sub TIESCALAR {
 	my $invocant=shift;
     my $self={};
-    bless $self, 'Annelidous::Frontend::XenShell::ActiveHandler';
+    bless $self, $invocant;
     $self->{vm}=shift;
     return $self;
 }
 
 sub STORE {
     my $self=shift;
-    return $self->{vm}->instance($_[1]);
+    $self->{vm}=new Annelidous::VM ($_[1]);
+    return $self->{vm}->id;
 }
 
 sub FETCH {
     my $self=shift;
-    return $self->{vm}->instance;
+    return $self->{vm}->id;
 }
 
 1;
