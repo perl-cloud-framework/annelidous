@@ -24,13 +24,13 @@ sub TIESCALAR {
 	my $invocant=shift;
     my $self={};
     bless $self, $invocant;
-    $self->{vm}=shift;
+    $self->{_search_module}=shift;
     return $self;
 }
 
 sub STORE {
     my $self=shift;
-    $self->{vm}=new Annelidous::VM ($_[1]);
+    $self->{vm}=new Annelidous::VM (-id=>$_[1], -search_module=>$self->{_search_module});
     return $self->{vm}->id;
 }
 
