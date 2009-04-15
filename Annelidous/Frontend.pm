@@ -19,14 +19,40 @@
 
 package Annelidous::Frontend;
 
-#
-# TODO: STUB: WRITE ME!
-#
-
 sub new {
 	my $self={};
 	bless $self, shift;
 	return $self;
 }
+
+#
+# Module wrapper
+#
+sub _module_wrapper {
+    my $self=shift;
+    my $objkey=shift;
+    my $obj=shift;
+    if (defined($obj)) {
+        # Do we need to baby people this much?
+        # Maybe its overkill...
+        if (ref($obj) eq "SCALAR") {
+            $self->{$objkey}=eval "new $obj (".@_.")";
+        } else {
+            $self->{$objkey}=$obj;
+        }
+    }
+    return $self->{$objkey};
+}
+
+sub connector {
+    my $self=shift;
+    return $self->_module_wrapper('_connector_obj', @_)
+}
+
+sub search {
+    my $self=shift;
+    return $self->_module_wrapper('_search_obj', @_)
+}
+
 
 1;
