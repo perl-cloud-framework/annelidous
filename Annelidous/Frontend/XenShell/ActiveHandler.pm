@@ -45,4 +45,9 @@ sub FETCH {
     return $self->{vm}->id;
 }
 
+sub vm {
+    my $self=shift;
+    return $self->{vm};
+}
+
 1;
