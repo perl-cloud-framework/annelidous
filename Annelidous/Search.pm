@@ -21,7 +21,7 @@ package Annelidous::Search;
 
 use strict;
 
-use DBI;
+#use DBI;
 
 sub new {
 	my $class=shift;
@@ -54,6 +54,10 @@ sub new {
 		bless $self, $class;
 	}
 
+	if (defined($self->{'-dbh'})) {
+		$self->{'dbh'}=$self->{'-dbh'};
+	}
+
 	return $self;
 }
 
@@ -62,7 +66,7 @@ sub new {
 sub db_fetch {
 	my $self=shift;
     my $statement=shift;
-    return @{$self->{dbh}->selectall_arrayref($statement,{ Slice=>{} }, @_)};
+    return @{$self->{-dbh}->selectall_arrayref($statement,{ Slice=>{} }, @_)};
 }
 
 #

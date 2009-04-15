@@ -20,16 +20,20 @@
 package Annelidous::VM;
 use strict;
 
+use Data::Dumper;
+
 #
 # All class variables starting '-' are arguments to 'new'.
 # Method 'id' returns self{'_id'}, the set id.
 # Thus, '-id' is an argument to 'new', '_id' is the current id.
 #
 sub new {
-	my $class=shift;
+    my $invocant = shift;
+    my $class   = ref($invocant) || $invocant;
 	my $self={
-		-id=>undef,
-		-search_module=>undef
+		#-id=>undef,
+		#-search_module=>undef
+		#-connector_module=>undef
 		@_
 	};
 	bless $self, $class;
@@ -37,6 +41,11 @@ sub new {
 	if (defined($self->{-search_module})) {
 	    $self->search($self->{-search_module});
 	}	
+
+	if (defined($self->{-connector_module})) {
+	    $self->search($self->{-connector_module});
+	}	
+
 	if (defined($self->{-id})) {
 	    $self->id($self->{-id});
 	}
@@ -54,35 +63,64 @@ sub init {
 sub id {
     my $self=shift;
     my $given_id=shift;
+
     unless (defined($given_id)) {
         return $self->{_id};
     }
     
     # If we've gotten this far, we're setting a new id.
-    if (my $result=$self->search->find_byid($given_id))
-    {
-        $self->init($result);
+    if (my @result=$self->search->by_id($given_id)) {
+        $self->init($result[0]);
     }
+
     return $self->{_id};
 }
 
+sub data {
+	my $self=shift;
+	return $self->{_data};
+}
+
 #
-# Accesses the search object.
-# Optional argument sets the default search object...
+# Module wrapper
 #
-sub search {
+sub _module_wrapper {
     my $self=shift;
-    my $sobj=shift;
-    if (defined($sobj)) {
+    my $objkey=shift;
+    my $obj=shift;
+    if (defined($obj)) {
         # Do we need to baby people this much?
         # Maybe its overkill...
-        if (ref($sobj) eq "SCALAR") {
-            $self->{_search_obj}=eval "new $sobj (".@_.")";
+        if (ref($obj) eq "SCALAR") {
+            $self->{$objkey}=eval "new $obj (".@_.")";
         } else {
-            $self->{_search_obj}=$sobj;
+            $self->{$objkey}=$obj;
         }
     }
-    return $self->{_search_obj};
+    return $self->{$objkey};
 }
+
+sub connector {
+    my $self=shift;
+    return $self->_module_wrapper('_connector_obj', @_)
+}
+
+sub search {
+    my $self=shift;
+    return $self->_module_wrapper('_search_obj', @_)
+}
+
+#sub uptime {
+#	my $self=shift;
+#	return $self->connector->uptime;
+#}
+#
+#sub boot {
+#	shift->connector->boot
+#}
+#
+#sub shutdown {
+#	shift->connector->shutdown
+#}
 
 1;

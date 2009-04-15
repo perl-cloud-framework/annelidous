@@ -30,7 +30,6 @@ sub new {
 	my $self={
 	    use_openssh=>0,
 	    username=>'root',
-	    account=>undef,
 	    @_
 	};
 	bless $self, $class;

@@ -29,6 +29,11 @@ sub new {
 	    @_
 	};
 	bless $self, $class;
+
+	if (defined $self->{-dbh}) {
+		$self->{dbh}=$self->{-dbh};
+	}
+
 	return $self;
 }
 
@@ -62,7 +67,7 @@ sub find {
     my $self=shift;
     my $where=shift;
     my @args=@_;
-    my @cl=$self->db_fetch("select distinct first as first_name,last as last_name,username,code as plan,email, desserv as description,PACKAGES.packid as package_id from PACKAGES join CLIENT on PACKAGES.clientid=CLIENT.clientid join plans on plans.plan_id=PACKAGES.plan_id where PACKAGES.active=1 ".$where, @args);
+    my @cl=$self->db_fetch("select distinct first as first_name,last as last_name,username,code as plan,email, desserv as description,PACKAGES.packid as id from PACKAGES join CLIENT on PACKAGES.clientid=CLIENT.clientid join plans on plans.plan_id=PACKAGES.plan_id where PACKAGES.active=1 ".$where, @args);
 
     # strcmp to detect an ipv4 address which is specified in ipv6 notation with "0000::" prefix
     my $sth=$self->{dbh}->prepare("select INET_NTOA(conv(addr,16,10)) as ip from ip_assignments where ip_assignments.service_id=? and strcmp('0000',substr(addr,1,4))=0");
@@ -74,13 +79,13 @@ sub find {
     foreach my $client (@cl) {
 		$client->{'memory'}=$self->lookup_mem($client->{'plan'});
         
-        $sth->execute($client->{'package_id'});
+        $sth->execute($client->{'id'});
         my @ip4;
         while (my $addrinfo=$sth->fetchrow_hashref) {
             push @ip4, $addrinfo->{'ip'};
         }
 
-        $sth6->execute($client->{'package_id'});
+        $sth6->execute($client->{'id'});
         my @ip6;
         while (my $addrinfo=$sth6->fetchrow_hashref) {
             push @ip6, $addrinfo->{'ip6'};
@@ -92,19 +97,22 @@ sub find {
 
         my $ip6router;
         if ($client->{'ip6'}) {
-        $client->{'ip6'} =~ /(.*).(\/\w+)/;
-        $client->{'ip6router'}=$1."1".$2;
+			$client->{'ip6'} =~ /(.*).(\/\w+)/;
+			$client->{'ip6router'}=$1."1".$2;
 
-        my $ip6in4=$ip4[0];
-        $ip6in4 =~ s/\./:/g;
-        $client->{'ip6'} =~ /^(\w+:\w+:\w+:\w+:)/;
-        $client->{'ip6in4'} = $1.$ip6in4;
+			my $ip6in4=$ip4[0];
+			$ip6in4 =~ s/\./:/g;
+			$client->{'ip6'} =~ /^(\w+:\w+:\w+:\w+:)/;
+			$client->{'ip6in4'} = $1.$ip6in4;
+		}
 
         # replace any C/v/Vs with c'
         $client->{username} =~ s/^(c|v)?/c/i;
+
+		# TODO: FIXME: Bitness check from uber
+		$client->{bitness} = 64;
     }
 
-    }
     $sth->finish();
     $sth6->finish();
     return @cl;
@@ -125,6 +133,12 @@ sub find_byusername {
     my $self=shift;
     my $username=shift;
     return $self->find("and username regexp ?", $username);
+}
+
+sub by_id {
+    my $self=shift;
+    my $id=shift;
+    return $self->find("and PACKAGES.packid=?", $id);
 }
 
 #

@@ -19,19 +19,28 @@
 
 package Annelidous::Connector::Xen;
 use base 'Annelidous::Connector';
+use Data::Dumper;
 
 sub new {
 	my $invocant = shift;
 	my $class   = ref($invocant) || $invocant;
 	my $self={
 	    -transport=>'Annelidous::Transport::SSH',
-	    -account=>undef,
+	    #-vm=>undef,
 	    @_
 	};
 	bless $self, $class;
-	
-	# Initialize a new transport.
-	$self->{_transport}=eval "new $self->{-transport} (".'$self->{-account})};';
+
+	if (defined($self->{-vm})) {
+		$self->{_vm}=${$self->{-vm}};
+	}
+
+	my $tr=$self->transport($self->{-transport});
+	$tr->{_vm}=$self->vm;
+	$tr->{_search}=$self->search;
+	#$self->_module_wrapper('_transport_obj', 'Annelidous::Transport::SSH');
+	#print $self->transporter();
+
 	return $self;
 }
 
@@ -39,8 +48,8 @@ sub new {
 # takes a client_pool as argument 
 sub boot {
     my $self=shift;
-    my $guest=$self->{-account};
-    my $bitness=$guest->{bitness};
+    my $guest=$self->vm->data;
+	print Dumper $guest;
        
     #my @userinfo=getpwent($guest->{username});
     #my $homedir=$userinfo[7];
@@ -49,7 +58,7 @@ sub boot {
     my @exec=("xm","create",
     "/dev/null",
     "name='".$guest->{username}."'",
-    "kernel='/boot/xen/vmlinuz-".$bitness."'",
+    "kernel='/boot/xen/vmlinuz-".$guest->{bitness}."'",
     "memory=".$guest->{'memory'},
     "vif='vifname=".$guest->{username}.",ip=".$guest->{ip}."'",
     #"disk='phy:mapper/SanXenDomains-".$guest->{username}.",sda1,w'",
@@ -75,6 +84,13 @@ sub shutdown {
     $self->transport->exec("xm","shutdown",$self->{account}->{username});
 }
 
+sub uptime {
+    my $self=shift;
+    #$self->transport->exec("xm","shutdown",$self->{account}->{username});
+	return 28800;
+}
+
+
 sub console {
     my $self=shift;
     # TODO: IMPLEMENT Xen Console
@@ -89,6 +105,5 @@ sub console {
     #    $cap->add("vnc");
     #}
 }
-
 
 1;

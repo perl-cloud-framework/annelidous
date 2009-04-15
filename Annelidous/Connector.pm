@@ -31,6 +31,11 @@ sub instance {
 	return $self->{instance};
 }
 
+sub vm {
+	my $self=shift;
+	return $self->{_vm};
+}
+
 sub reboot {
     my $self=shift;
     $self->shutdown();
@@ -45,8 +50,40 @@ sub console {
     die 'Must override console method.';
 }
 
+#sub transport {
+#    shift->{_transport};
+#}
+
+#
+# Module wrapper
+#
+sub _module_wrapper {
+    my ($self, $objkey, $obj, $arg) = @_;
+    #my $self=shift;
+    #my $objkey=shift;
+    #my $obj=shift;
+    if (defined($obj)) {
+        # Do we need to baby people this much?
+        # Maybe its overkill...
+        if (ref($obj) eq "") {
+			eval "use $obj;";
+            #print "Frontend:module_wrapper:scalar:";
+            #print Dumper @_;
+            $self->{$objkey}=eval "new $obj ()";
+            #print "Frontend:module_wrapper:scalar:obj:";
+            #print Dumper $self->{$objkey};
+        } else {
+            #print "Frontend:module_wrapper:non-scalar:";
+            #print Dumper $obj;
+            $self->{$objkey}=$obj;
+        }
+    }
+    return $self->{$objkey};
+}
+
 sub transport {
-    shift->{_transport};
+    my $self=shift;
+    return $self->_module_wrapper('_transport_obj', @_);
 }
 
 1;

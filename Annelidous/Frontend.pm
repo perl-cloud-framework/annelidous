@@ -18,10 +18,23 @@
 #
 
 package Annelidous::Frontend;
+use Annelidous::VM;
+use Data::Dumper;
 
 sub new {
-	my $self={};
-	bless $self, shift;
+	my $invocant = shift;
+	my $class   = ref($invocant) || $invocant;
+	my $self={
+	    -search_module=>undef,
+	    -connector_module=>undef,
+	    @_
+	};
+	bless $self, $class;
+
+	# Set our connector and search modules
+	#$self->connector($self->{'-connector_module'});
+	$self->search($self->{'-search_module'});
+
 	return $self;
 }
 
@@ -29,15 +42,23 @@ sub new {
 # Module wrapper
 #
 sub _module_wrapper {
-    my $self=shift;
-    my $objkey=shift;
-    my $obj=shift;
+	my ($self, $objkey, $obj, $arg) = @_;
+    #my $self=shift;
+    #my $objkey=shift;
+    #my $obj=shift;
     if (defined($obj)) {
         # Do we need to baby people this much?
         # Maybe its overkill...
-        if (ref($obj) eq "SCALAR") {
-            $self->{$objkey}=eval "new $obj (".@_.")";
+        if (ref($obj) eq "") {
+			#print "Frontend:module_wrapper:scalar:";
+			#print Dumper @_;
+			eval "use $obj;";
+            $self->{$objkey}=eval "new $obj ()";
+			#print "Frontend:module_wrapper:scalar:obj:";
+            #print Dumper $self->{$objkey};
         } else {
+			#print "Frontend:module_wrapper:non-scalar:";
+			#print Dumper $obj;
             $self->{$objkey}=$obj;
         }
     }
@@ -54,5 +75,21 @@ sub search {
     return $self->_module_wrapper('_search_obj', @_)
 }
 
+sub new_vm {
+	my ($self, $id)=@_;
+	my $vm=new Annelidous::VM (-id=>$id, -search_module=>$self->search);
+	return $vm;
+}
+
+sub new_connector {
+	my $self=shift;
+	my $vm=shift;
+	my $conn=$self->connector($self->{'-connector_module'}); #,-vm=>$vm);
+	$conn->{_vm}=$vm;
+	$conn->{_search}=$self->search;
+	bless $conn, $self->{'-connector_module'};
+	print Dumper $conn;
+	return $conn;
+}
 
 1;

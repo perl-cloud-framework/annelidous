@@ -27,7 +27,7 @@ sub new {
 
 sub get_host {
     my $self=shift;
-    my $guest=$self->{account};
+    my $guest=$self->{_vm}->data;
     
     if (defined ($guest->{host})) {
         $hostname=$guest->{host};
@@ -36,6 +36,11 @@ sub get_host {
     } else {
         $hostname=$self->parent->search->get_default_cluster()->get_host;
     }
+}
+
+sub parent {
+	my $self=shift;
+	return $self->{_parent};
 }
 
 1;

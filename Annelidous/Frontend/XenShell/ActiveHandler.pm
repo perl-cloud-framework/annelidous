@@ -18,6 +18,7 @@
 #
 
 package Annelidous::Frontend::XenShell::ActiveHandler;
+use Data::Dumper;
 
 sub TIESCALAR {
 	my $invocant=shift;
@@ -29,14 +30,16 @@ sub TIESCALAR {
 
 sub STORE {
     my $self=shift;
-    my $id=$_[1];
+    my $id=shift;
     $self->{vm}=$self->{_frontend_obj}->new_vm(    
-        $self->{_frontend_obj}->search->by_id($id)
+		$id
+        #$self->{_frontend_obj}->search->by_id($id)
     );
+	#print $self->{_frontend_obj}->search->by_id($id);
+	#print Dumper $self->{vm};
     $self->{connector}=$self->{_frontend_obj}->new_connector(
         $self->{vm}
     );
-    #$self->{vm}=new Annelidous::VM (-id=>$_[1], -search_module=>$self->{_search_module});
     return $self->{vm}->id;
 }
 
@@ -49,5 +52,11 @@ sub vm {
     my $self=shift;
     return $self->{vm};
 }
+
+sub connector {
+    my $self=shift;
+    return $self->{connector};
+}
+
 
 1;
