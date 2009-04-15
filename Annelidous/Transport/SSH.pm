@@ -24,13 +24,16 @@ package Annelidous::Transport::SSH;
 use base 'Annelidous::Transport';
 
 sub new {
+    my $invocant = shift;
+    my $class   = ref($invocant) || $invocant;
+
 	my $self={
 	    use_openssh=>0,
 	    username=>'root',
 	    account=>undef,
 	    @_
 	};
-	bless $self, shift;
+	bless $self, $class;
 	
 	if ($self->{use_openssh}==0) {
 	    eval {

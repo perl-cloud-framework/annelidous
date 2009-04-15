@@ -21,15 +21,17 @@ package Annelidous::Connector::Xen;
 use base 'Annelidous::Connector';
 
 sub new {
+	my $invocant = shift;
+	my $class   = ref($invocant) || $invocant;
 	my $self={
 	    -transport=>'Annelidous::Transport::SSH',
 	    -account=>undef,
 	    @_
 	};
-	bless $self, shift;
+	bless $self, $class;
 	
 	# Initialize a new transport.
-	$self->{_transport}=exec "new $self->{-transport} (".'$self->{-account})};';
+	$self->{_transport}=eval "new $self->{-transport} (".'$self->{-account})};';
 	return $self;
 }
 
