@@ -30,6 +30,7 @@ sub new {
 	my $self={
 	    use_openssh=>0,
 	    username=>'root',
+		-host=>'',
 	    @_
 	};
 	bless $self, $class;
@@ -76,16 +77,31 @@ sub _session {
     return $self->{_session};
 }
 
+# Execs on server
 sub exec {
     my $self=shift;
     my @exec=@_;
-    my $hostname=$self->get_host;
+	my $hostname=$self->get_host();
     
     if ($self->{use_openssh}) {
-        system("ssh","-l",$self->{username},@exec);
+        system("ssh",'-i','/etc/ssh/id_rsa',"-l",$self->{username},$hostname,@exec);
     } else {
         $self->_session->cmd(join (" ",@exec));
     }
+}
+
+# allocates a tty for the command
+sub tty {
+    my $self=shift;
+    my @exec=@_;
+	my $hostname=$self->get_host();
+
+	# Must do openssh for now... 
+    #if ($self->{use_openssh}) {
+	system("ssh",'-t','-i','/etc/ssh/id_rsa',"-l",$self->{username},$hostname,@exec);
+    #} else {
+    #    $self->_session->cmd(join (" ",@exec));
+    #}
 }
 
 1;

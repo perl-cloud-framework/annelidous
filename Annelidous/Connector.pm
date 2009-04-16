@@ -31,10 +31,10 @@ sub instance {
 	return $self->{instance};
 }
 
-sub vm {
-	my $self=shift;
-	return $self->{_vm};
-}
+#sub vm {
+#	my $self=shift;
+#	return $self->{_vm};
+#}
 
 sub reboot {
     my $self=shift;
@@ -58,23 +58,17 @@ sub console {
 # Module wrapper
 #
 sub _module_wrapper {
-    my ($self, $objkey, $obj, $arg) = @_;
-    #my $self=shift;
-    #my $objkey=shift;
-    #my $obj=shift;
+    #my ($self, $objkey, $obj, $arg) = @_;
+    my $self=shift;
+    my $objkey=shift;
+    my $obj=shift;
     if (defined($obj)) {
         # Do we need to baby people this much?
         # Maybe its overkill...
         if (ref($obj) eq "") {
 			eval "use $obj;";
-            #print "Frontend:module_wrapper:scalar:";
-            #print Dumper @_;
-            $self->{$objkey}=eval "new $obj ()";
-            #print "Frontend:module_wrapper:scalar:obj:";
-            #print Dumper $self->{$objkey};
+            $self->{$objkey}=$obj->new(%{$_[0]});
         } else {
-            #print "Frontend:module_wrapper:non-scalar:";
-            #print Dumper $obj;
             $self->{$objkey}=$obj;
         }
     }
@@ -84,6 +78,16 @@ sub _module_wrapper {
 sub transport {
     my $self=shift;
     return $self->_module_wrapper('_transport_obj', @_);
+}
+
+sub search {
+    my $self=shift;
+    return $self->_module_wrapper('_search_obj', @_);
+}
+
+sub vm {
+    my $self=shift;
+    return $self->_module_wrapper('_vm_obj', @_);
 }
 
 1;

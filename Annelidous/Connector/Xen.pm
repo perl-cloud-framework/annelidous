@@ -21,26 +21,23 @@ package Annelidous::Connector::Xen;
 use base 'Annelidous::Connector';
 use Data::Dumper;
 
+#use Annelidous::Transport::SSH;
+
 sub new {
 	my $invocant = shift;
 	my $class   = ref($invocant) || $invocant;
 	my $self={
 	    -transport=>'Annelidous::Transport::SSH',
-	    #-vm=>undef,
+	    -vm=>undef,
 	    @_
 	};
 	bless $self, $class;
 
 	if (defined($self->{-vm})) {
-		$self->{_vm}=${$self->{-vm}};
+		$self->vm($self->{-vm});
 	}
 
-	my $tr=$self->transport($self->{-transport});
-	$tr->{_vm}=$self->vm;
-	$tr->{_search}=$self->search;
-	#$self->_module_wrapper('_transport_obj', 'Annelidous::Transport::SSH');
-	#print $self->transporter();
-
+	$self->transport($self->{-transport},{-host=>$self->vm->get_host});
 	return $self;
 }
 
@@ -49,8 +46,7 @@ sub new {
 sub boot {
     my $self=shift;
     my $guest=$self->vm->data;
-	print Dumper $guest;
-       
+
     #my @userinfo=getpwent($guest->{username});
     #my $homedir=$userinfo[7];
 
@@ -61,15 +57,15 @@ sub boot {
     "kernel='/boot/xen/vmlinuz-".$guest->{bitness}."'",
     "memory=".$guest->{'memory'},
     "vif='vifname=".$guest->{username}.",ip=".$guest->{ip}."'",
-    #"disk='phy:mapper/SanXenDomains-".$guest->{username}.",sda1,w'",
-    "disk='phy:mapper/XenDomains-".$guest->{username}.",sda1,w'",
-    #"disk='phy:mapper/XenSwap-".$guest->{username}."swap,sda2,w'",
-    "disk='phy:mapper/XenDomains-".$guest->{username}."swap,sda2,w'",
+    "disk='phy:mapper/SanXenDomains-".$guest->{username}.",sda1,w'",
+    #"disk='phy:mapper/XenDomains-".$guest->{username}.",sda1,w'",
+    "disk='phy:mapper/XenSwap-".$guest->{username}."swap,sda2,w'",
+    #"disk='phy:mapper/XenDomains-".$guest->{username}."swap,sda2,w'",
     "root='/dev/sda1 ro'",
     "extra='3 console=xvc0'",
     "vcpus=1");
     print join " ", @exec;
-    $self->transport->exec(@exec);
+    $self->transport()->exec(@exec);
 
     # Configure IPv6 router IP for vif (no proxy arp here, we give a whole subnet)
     if ($guest->{'ip6router'}) {
@@ -81,29 +77,32 @@ sub boot {
 
 sub shutdown {
     my $self=shift;
-    $self->transport->exec("xm","shutdown",$self->{account}->{username});
+    return $self->transport->exec("xm","shutdown",$self->vm->data->{username});
 }
 
 sub uptime {
     my $self=shift;
-    #$self->transport->exec("xm","shutdown",$self->{account}->{username});
-	return 28800;
+    return $self->transport->exec("xm","uptime",$self->vm->data->{username});
 }
-
 
 sub console {
     my $self=shift;
-    # TODO: IMPLEMENT Xen Console
-    # provided is a suggested layout for this method...
-    #my $cap=new Annelidous::Capabilities;
-    #$cap->add("serial");
-    # Get the console here.
-    #$self->transport->exec("xm");
-    #if () {
-    #    $cap->add("tty");
-    #} else {
-    #    $cap->add("vnc");
-    #}
+    return $self->transport->tty("xm","console",$self->vm->data->{username});
 }
+
+#sub console {
+#    my $self=shift;
+#    # TODO: IMPLEMENT Xen Console
+#    # provided is a suggested layout for this method...
+#    #my $cap=new Annelidous::Capabilities;
+#    #$cap->add("serial");
+#    # Get the console here.
+#    #$self->transport->exec("xm");
+#    #if () {
+#    #    $cap->add("tty");
+#    #} else {
+#    #    $cap->add("vnc");
+#    #}
+#}
 
 1;

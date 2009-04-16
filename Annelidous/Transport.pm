@@ -25,22 +25,14 @@ sub new {
 	return $self;
 }
 
-sub get_host {
-    my $self=shift;
-    my $guest=$self->{_vm}->data;
-    
-    if (defined ($guest->{host})) {
-        $hostname=$guest->{host};
-    } elsif (defined ($guest->{cluster})) {
-        $hostname=$self->parent->search->get_cluster($guest->{cluster})->get_host;
-    } else {
-        $hostname=$self->parent->search->get_default_cluster()->get_host;
-    }
-}
-
 sub parent {
 	my $self=shift;
 	return $self->{_parent};
+}
+
+sub get_host {
+	my $self=shift;
+	return $self->{-host};
 }
 
 1;

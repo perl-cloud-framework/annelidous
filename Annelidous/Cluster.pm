@@ -17,47 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-package Annelidous::Frontend::XenShell::ActiveHandler;
-use Data::Dumper;
+package Annelidous::Cluster;
 
-sub TIESCALAR {
-	my $invocant=shift;
-    my $self={};
-    bless $self, $invocant;
-    $self->{_frontend_obj}=shift;
-    return $self;
+sub new {
+	my $self={};
+	bless $self, shift;
+	return $self;
 }
-
-sub STORE {
-    my $self=shift;
-    my $id=shift;
-
-    $self->{vm}=$self->{_frontend_obj}->new_vm(    
-		$id
-        #$self->{_frontend_obj}->search->by_id($id)
-    );
-	#print $self->{_frontend_obj}->search->by_id($id);
-	#print Dumper $self->{vm};
-    $self->{connector}=$self->{_frontend_obj}->new_connector(
-        $self->{vm}
-    );
-    return $self->{vm}->id;
-}
-
-sub FETCH {
-    my $self=shift;
-    return $self->{vm}->id;
-}
-
-sub vm {
-    my $self=shift;
-    return $self->{vm};
-}
-
-sub connector {
-    my $self=shift;
-    return $self->{connector};
-}
-
 
 1;

@@ -42,23 +42,18 @@ sub new {
 # Module wrapper
 #
 sub _module_wrapper {
-	my ($self, $objkey, $obj, $arg) = @_;
-    #my $self=shift;
-    #my $objkey=shift;
-    #my $obj=shift;
+	#my ($self, $objkey, $obj, $arg) = @_;
+    my $self=shift;
+    my $objkey=shift;
+    my $obj=shift;
+	my $hash=@_;
     if (defined($obj)) {
         # Do we need to baby people this much?
         # Maybe its overkill...
         if (ref($obj) eq "") {
-			#print "Frontend:module_wrapper:scalar:";
-			#print Dumper @_;
 			eval "use $obj;";
-            $self->{$objkey}=eval "new $obj ()";
-			#print "Frontend:module_wrapper:scalar:obj:";
-            #print Dumper $self->{$objkey};
+            $self->{$objkey}=$obj->new(%{$_[0]});
         } else {
-			#print "Frontend:module_wrapper:non-scalar:";
-			#print Dumper $obj;
             $self->{$objkey}=$obj;
         }
     }
@@ -77,19 +72,13 @@ sub search {
 
 sub new_vm {
 	my ($self, $id)=@_;
-	my $vm=new Annelidous::VM (-id=>$id, -search_module=>$self->search);
-	return $vm;
+	return Annelidous::VM->new(-id=>$id, -search_module=>$self->search);
 }
 
 sub new_connector {
 	my $self=shift;
 	my $vm=shift;
-	my $conn=$self->connector($self->{'-connector_module'}); #,-vm=>$vm);
-	$conn->{_vm}=$vm;
-	$conn->{_search}=$self->search;
-	bless $conn, $self->{'-connector_module'};
-	print Dumper $conn;
-	return $conn;
+	return $self->connector($self->{'-connector_module'},{-vm=>$vm});
 }
 
 1;

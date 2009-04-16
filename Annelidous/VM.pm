@@ -92,7 +92,7 @@ sub _module_wrapper {
         # Do we need to baby people this much?
         # Maybe its overkill...
         if (ref($obj) eq "SCALAR") {
-            $self->{$objkey}=eval "new $obj (".@_.")";
+            $self->{$objkey}=eval "$obj"."->new(".@_.")";
         } else {
             $self->{$objkey}=$obj;
         }
@@ -122,5 +122,23 @@ sub search {
 #sub shutdown {
 #	shift->connector->shutdown
 #}
+
+#
+# Attempt to find an adequate host
+#
+sub get_host {
+    my $self=shift;
+    my $guest=$self->data;
+	my $hostname;
+
+    if (defined ($guest->{host})) {
+        $hostname=$guest->{host};
+    } elsif (defined ($guest->{cluster})) {
+        $hostname=$self->search->get_cluster($guest->{cluster})->get_host;
+    } else {
+        $hostname=$self->search->get_default_cluster()->get_host;
+    }
+	return $hostname;
+}
 
 1;

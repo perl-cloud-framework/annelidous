@@ -45,7 +45,7 @@ sub new {
 	if (defined($self->{subclass})) {
 		eval { 
 			require $self->{subclass};
-			$self=new $self->{subclass};
+			$self=$self->{subclass}->new;
 		};
 		if ($@) {
 			return {};

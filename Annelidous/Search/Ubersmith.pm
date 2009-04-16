@@ -22,6 +22,8 @@ package Annelidous::Search::Ubersmith;
 # Inheritance (shorthand for using @INC/require)
 use base ("Annelidous::Search");
 
+use Annelidous::Cluster::GrokThis;
+
 sub new {
 	my $class=shift;
 	my $self={
@@ -157,6 +159,11 @@ sub find_byhost {
     my $self=shift;
     my $hostname=shift;
     return $self->find ("and servername=?", $hostname);
+}
+
+sub get_default_cluster {
+	my $self=shift;
+	return Annelidous::Cluster::GrokThis->new();
 }
 
 1;
