@@ -69,7 +69,7 @@ sub find {
     my $self=shift;
     my $where=shift;
     my @args=@_;
-    my @cl=$self->db_fetch("select distinct first as first_name,last as last_name,username,code as plan,email, desserv as description,PACKAGES.packid as id from PACKAGES join CLIENT on PACKAGES.clientid=CLIENT.clientid join plans on plans.plan_id=PACKAGES.plan_id where PACKAGES.active=1 ".$where, @args);
+    my @cl=$self->db_fetch("select distinct first as first_name,last as last_name,username,code as plan,email, desserv as description,PACKAGES.packid as id,PACKAGES.servername as host from PACKAGES join CLIENT on PACKAGES.clientid=CLIENT.clientid join plans on plans.plan_id=PACKAGES.plan_id where PACKAGES.active=1 ".$where, @args);
 
     # strcmp to detect an ipv4 address which is specified in ipv6 notation with "0000::" prefix
     my $sth=$self->{dbh}->prepare("select INET_NTOA(conv(addr,16,10)) as ip from ip_assignments where ip_assignments.service_id=? and strcmp('0000',substr(addr,1,4))=0");
@@ -163,7 +163,7 @@ sub find_byhost {
 
 sub get_default_cluster {
 	my $self=shift;
-	return Annelidous::Cluster::GrokThis->new();
+	return Annelidous::Cluster::GrokThis->new($self);
 }
 
 1;

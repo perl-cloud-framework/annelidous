@@ -49,6 +49,13 @@ sub boot {
 
     #my @userinfo=getpwent($guest->{username});
     #my $homedir=$userinfo[7];
+	my $hostname=$self->vm->get_host();
+	my $guestVG="XenDomains";
+	my $swapVG="XenDomains";
+	if ($hostname =~ /fury.grokthis.net/) {
+		$guestVG="SanXenDomains";
+		$swapVG="XenSwap";
+	}
 
     print "Starting guest: ".$guest->{username}."\n";
     my @exec=("xm","create",
@@ -57,9 +64,9 @@ sub boot {
     "kernel='/boot/xen/vmlinuz-".$guest->{bitness}."'",
     "memory=".$guest->{'memory'},
     "vif='vifname=".$guest->{username}.",ip=".$guest->{ip}."'",
-    "disk='phy:mapper/SanXenDomains-".$guest->{username}.",sda1,w'",
+    "disk='phy:mapper/".$guestVG."-".$guest->{username}.",sda1,w'",
+    "disk='phy:mapper/".$swapVG."-".$guest->{username}."swap,sda2,w'",
     #"disk='phy:mapper/XenDomains-".$guest->{username}.",sda1,w'",
-    "disk='phy:mapper/XenSwap-".$guest->{username}."swap,sda2,w'",
     #"disk='phy:mapper/XenDomains-".$guest->{username}."swap,sda2,w'",
     "root='/dev/sda1 ro'",
     "extra='3 console=xvc0'",
