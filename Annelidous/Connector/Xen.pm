@@ -57,7 +57,7 @@ sub boot {
 		$swapVG="XenSwap";
 	}
 
-    print "Starting guest: ".$guest->{username}."\n";
+    #print "Starting guest: ".$guest->{username}."\n";
     my @exec=("xm","create",
     "/dev/null",
     "name='".$guest->{username}."'",
@@ -71,13 +71,13 @@ sub boot {
     "root='/dev/sda1 ro'",
     "extra='3 console=xvc0'",
     "vcpus=1");
-    print join " ", @exec;
+    #print join " ", @exec;
     $self->transport()->exec(@exec);
 
     # Configure IPv6 router IP for vif (no proxy arp here, we give a whole subnet)
     if ($guest->{'ip6router'}) {
         my @exec2=("ifconfig","inet6","add",$guest->{username},$guest->{ip6router});
-        print join " ", @exec2;
+        #print join " ", @exec2;
         $self->transport->exec(@exec2);
     }
 }
@@ -85,6 +85,13 @@ sub boot {
 sub shutdown {
     my $self=shift;
     return $self->transport->exec("xm","shutdown",$self->vm->data->{username});
+}
+
+sub status {
+    my $self=shift;
+    my $ret=$self->transport->exec("xm","list",$self->vm->data->{username});
+	$ret=$ret >> 8;
+	return ($ret)?0:1;
 }
 
 sub uptime {
@@ -95,6 +102,13 @@ sub uptime {
 sub console {
     my $self=shift;
     return $self->transport->tty("xm","console",$self->vm->data->{username});
+}
+
+sub reimage {
+    my $self=shift;
+	my @ip4=split (/ /, $self->vm->data->{ip4});
+	my $ip=$ip4[0];
+    return $self->transport->tty("/usr/bin/gt-xm-reimage",$self->vm->data->{username},$self->vm->data->{username},$self->vm->data->{memory},$ip);
 }
 
 #sub console {
