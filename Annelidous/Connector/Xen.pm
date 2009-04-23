@@ -41,9 +41,9 @@ sub new {
 	return $self;
 }
 
-# Launch client guest OS...
+# Launch client guest OS into rescue mode
 # takes a client_pool as argument 
-sub boot {
+sub rescue {
     my $self=shift;
     my $guest=$self->vm->data;
 
@@ -69,7 +69,7 @@ sub boot {
     #"disk='phy:mapper/XenDomains-".$guest->{username}.",sda1,w'",
     #"disk='phy:mapper/XenDomains-".$guest->{username}."swap,sda2,w'",
     "root='/dev/sda1 ro'",
-    "extra='3 console=xvc0'",
+    "extra='init=/bin/sh console=xvc0'",
     "vcpus=1");
     #print join " ", @exec;
     $self->transport()->exec(@exec);
@@ -82,9 +82,57 @@ sub boot {
     }
 }
 
+# Launch client guest OS...
+# takes a client_pool as argument 
+sub boot {
+    my $self=shift;
+    my $guest=$self->vm->data;
+
+    #my @userinfo=getpwent($guest->{username});
+    #my $homedir=$userinfo[7];
+	my $hostname=$self->vm->get_host();
+	my $guestVG="XenDomains";
+	my $swapVG="XenDomains";
+	if ($hostname =~ /fury.grokthis.net/) {
+		$guestVG="SanXenDomains";
+		$swapVG="XenSwap";
+	}
+
+    #print "Starting guest: ".$guest->{username}."\n";
+    my @exec=("xm","create",
+    "/dev/null",
+    "name='".$guest->{username}."'",
+    "kernel='/boot/xen/vmlinuz-".$guest->{bitness}."'",
+    "memory=".$guest->{'memory'},
+    "vif='vifname=".$guest->{username}.",ip=".$guest->{ip4}."'",
+    "disk='phy:mapper/".$guestVG."-".$guest->{username}.",sda1,w'",
+    "disk='phy:mapper/".$swapVG."-".$guest->{username}."swap,sda2,w'",
+    #"disk='phy:mapper/XenDomains-".$guest->{username}.",sda1,w'",
+    #"disk='phy:mapper/XenDomains-".$guest->{username}."swap,sda2,w'",
+    "root='/dev/sda1 ro'",
+    "extra='3 console=xvc0'",
+    "vcpus=1");
+	print "\n";
+    print join " ", @exec;
+	print "\n";
+    $self->transport()->exec(@exec);
+
+    # Configure IPv6 router IP for vif (no proxy arp here, we give a whole subnet)
+    if ($guest->{'ip6router'}) {
+        my @exec2=("ifconfig",$guest->{username},"inet6","add",$guest->{ip6router});
+        #print join " ", @exec2;
+        $self->transport->exec(@exec2);
+    }
+}
+
+sub destroy {
+    my $self=shift;
+    return $self->transport->exec("xm","destroy",$self->vm->data->{username});
+}
+
 sub shutdown {
     my $self=shift;
-    return $self->transport->exec("xm","shutdown",$self->vm->data->{username});
+    return $self->transport->exec("xm","shutdown","-w",$self->vm->data->{username});
 }
 
 sub status {

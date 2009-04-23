@@ -21,6 +21,7 @@ package Annelidous::VM;
 use strict;
 
 use Data::Dumper;
+use Carp;
 
 #
 # All class variables starting '-' are arguments to 'new'.
@@ -42,12 +43,14 @@ sub new {
 	    $self->search($self->{-search_module});
 	}	
 
-	if (defined($self->{-connector_module})) {
-	    $self->search($self->{-connector_module});
-	}	
+	#if (defined($self->{-connector_module})) {
+	#    $self->search($self->{-connector_module});
+	#}	
 
 	if (defined($self->{-id})) {
 	    $self->id($self->{-id});
+	} else {
+		croak 'id not specified to constructor.';
 	}
 	return $self;
 }
@@ -70,8 +73,15 @@ sub id {
     
     # If we've gotten this far, we're setting a new id.
     if (my @result=$self->search->by_id($given_id)) {
+		unless (defined($result[0])) {
+			croak "could not find $given_id";
+		}
         $self->init($result[0]);
     }
+
+	unless (defined($self->{_id})) {
+		croak 'id not found in Annelidous::VM';
+	}
 
     return $self->{_id};
 }
@@ -100,10 +110,10 @@ sub _module_wrapper {
     return $self->{$objkey};
 }
 
-sub connector {
-    my $self=shift;
-    return $self->_module_wrapper('_connector_obj', @_)
-}
+#sub connector {
+#    my $self=shift;
+#    return $self->_module_wrapper('_connector_obj', @_)
+#}
 
 sub search {
     my $self=shift;

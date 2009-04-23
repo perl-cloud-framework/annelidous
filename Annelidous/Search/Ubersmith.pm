@@ -65,11 +65,11 @@ sub lookup_mem {
 #
 # The base find method on which the others are built.
 #
-sub find {
+sub _find {
     my $self=shift;
     my $where=shift;
     my @args=@_;
-    my @cl=$self->db_fetch("select distinct first as first_name,last as last_name,username,code as plan,email, desserv as description,PACKAGES.packid as id,PACKAGES.servername as host from PACKAGES join CLIENT on PACKAGES.clientid=CLIENT.clientid join plans on plans.plan_id=PACKAGES.plan_id where PACKAGES.active=1 ".$where, @args);
+    my @cl=$self->db_fetch("select distinct first as first_name,last as last_name,username,code as plan,email, desserv as description,PACKAGES.packid as id,PACKAGES.servername as host,CLIENT.clientid as client_id from PACKAGES join CLIENT on PACKAGES.clientid=CLIENT.clientid join plans on plans.plan_id=PACKAGES.plan_id ".$where, @args);
 
     # strcmp to detect an ipv4 address which is specified in ipv6 notation with "0000::" prefix
     my $sth=$self->{dbh}->prepare("select INET_NTOA(conv(addr,16,10)) as ip from ip_assignments where ip_assignments.service_id=? and strcmp('0000',substr(addr,1,4))=0");
@@ -113,6 +113,7 @@ sub find {
 
 		# TODO: FIXME: Bitness check from uber
 		$client->{bitness} = 64;
+		#$client->{bitness} = 32;
     }
 
     $sth->finish();
@@ -123,9 +124,32 @@ sub find {
 #
 # Fetches all clients
 #
-sub find_all {
+sub find {
     my $self=shift;
-    return $self->find("");
+	my $where=shift;
+	if (defined ($where)) {
+		#print $where."\n";
+		$where =~ s/^and//g;
+		#print $where."\n";
+		$where = "where category='vps' and ".$where;
+	} else {
+		$where = "where category='vps'";
+	}
+    return $self->_find($where,@_);
+}
+
+sub find_inactive {
+	my $self=shift;
+	my $where=shift;
+	$where="PACKAGES.active!=1 ".$where;
+	return $self->find($where,@_);
+}
+	
+sub find_active {
+	my $self=shift;
+	my $where=shift;
+	$where="PACKAGES.active=1 ".$where;
+	return $self->find($where,@_);
 }
 
 #
@@ -140,7 +164,20 @@ sub find_byusername {
 sub by_id {
     my $self=shift;
     my $id=shift;
+	# Do not discriminate on active or not.
     return $self->find("and PACKAGES.packid=?", $id);
+}
+
+sub by_clientid {
+    my $self=shift;
+    my $id=shift;
+	my $active=shift;
+	my $where="and CLIENT.clientid=?";
+	if ($active) {
+		$where.=" and PACKAGES.active=1";
+	}
+	# Do not discriminate on active or not.
+    return $self->find($where, $id);
 }
 
 #
