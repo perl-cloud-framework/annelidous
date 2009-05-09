@@ -132,7 +132,7 @@ sub destroy {
 
 sub shutdown {
     my $self=shift;
-    return $self->transport->exec("xm","shutdown","-w",$self->vm->data->{username});
+    return $self->transport->exec("xm","shutdown",$self->vm->data->{username});
 }
 
 sub status {
