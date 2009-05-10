@@ -85,18 +85,11 @@ sub exec {
 	my $hostname=$self->get_host();
     
     if ($self->{use_openssh}) {
-        #system("ssh",'-i','/etc/ssh/id_rsa_vps',"-l",$self->{username},$hostname,@exec);
 		my $result;
-#        open(SSHCONN,join(' ', ['/usr/bin/ssh','-i','/etc/ssh/id_rsa_vps',"-l",$self->{username},$hostname,join(' ',@exec),"|"]));
-        my $cmd=join(' ', ('/usr/bin/ssh','-i','/etc/ssh/id_rsa_vps',"-l",$self->{username},$hostname,@exec,"|"));
-		#print Dumper $cmd."\n";
-        #system($cmd);
-        open(SSHCONN,$cmd);
+        open(SSHCONN,'-|','/usr/bin/ssh','-i','/etc/ssh/id_rsa_vps',"-l",$self->{username},$hostname,@exec);
 		while(<SSHCONN>) {
 			$result.=$_;
 		}
-		#print Dumper %ENV;
-        #system("ssh","-l",$self->{username},$hostname,@exec);
 		return [$?, $result];
     } else {
         $self->_session->cmd(join (" ",@exec));

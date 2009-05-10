@@ -113,7 +113,7 @@ sub boot {
     "extra='3 console=xvc0'",
     "vcpus=1");
 	#print "\n";
-    #print join " ", @exec;
+	#print join " ", @exec;
 	#print "\n";
     $self->transport()->exec(@exec);
 
