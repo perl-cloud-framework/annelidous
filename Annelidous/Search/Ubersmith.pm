@@ -164,6 +164,8 @@ sub find_byusername {
 sub by_id {
     my $self=shift;
     my $id=shift;
+	#print "Hunting for id: ";
+	#print Dumper $id."\n";
 	# Do not discriminate on active or not.
     return $self->find("and PACKAGES.packid=?", $id);
 }

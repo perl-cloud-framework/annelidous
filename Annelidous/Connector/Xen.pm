@@ -112,15 +112,14 @@ sub boot {
     "root='/dev/sda1 ro'",
     "extra='3 console=xvc0'",
     "vcpus=1");
-	print "\n";
-    print join " ", @exec;
-	print "\n";
+	#print "\n";
+    #print join " ", @exec;
+	#print "\n";
     $self->transport()->exec(@exec);
 
     # Configure IPv6 router IP for vif (no proxy arp here, we give a whole subnet)
     if ($guest->{'ip6router'}) {
         my @exec2=("ifconfig",$guest->{username},"inet6","add",$guest->{ip6router});
-        #print join " ", @exec2;
         $self->transport->exec(@exec2);
     }
 }
@@ -132,19 +131,19 @@ sub destroy {
 
 sub shutdown {
     my $self=shift;
-    return $self->transport->exec("xm","shutdown",$self->vm->data->{username});
+    return ${$self->transport->exec("xm","shutdown",$self->vm->data->{username})};
 }
 
 sub status {
     my $self=shift;
-    my $ret=$self->transport->exec("xm","list",$self->vm->data->{username});
+    my $ret=${$self->transport->exec("xm","list",$self->vm->data->{username})}[0];
 	$ret=$ret >> 8;
 	return ($ret)?0:1;
 }
 
 sub uptime {
     my $self=shift;
-    return $self->transport->exec("xm","uptime",$self->vm->data->{username});
+    return ${$self->transport->exec("xm","uptime",$self->vm->data->{username})}[1];
 }
 
 sub console {
