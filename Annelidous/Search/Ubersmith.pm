@@ -23,6 +23,7 @@ package Annelidous::Search::Ubersmith;
 use base ("Annelidous::Search");
 
 use Annelidous::Cluster::GrokThis;
+use Data::Dumper;
 
 sub new {
 	my $class=shift;
@@ -204,5 +205,52 @@ sub get_default_cluster {
 	my $self=shift;
 	return Annelidous::Cluster::GrokThis->new($self);
 }
+
+# Authentication per-service
+# I.E. sub-accounts
+sub auth_service {
+    my $self=shift;
+    my $username=shift;
+    my $password=shift;
+    my $c=$self->find("and username=? and password=?", $username,$password);
+
+	# Return the single authorized package/service.
+	return [$c->{id}];
+}
+
+# Authentication per-account
+# I.E. master accounts
+sub auth_account {
+    my $self=shift;
+    my $username=shift;
+    my $password=shift;
+    my @cl=$self->db_fetch("select clientid from CLIENT where clientid=? and password=? limit 1",$username,$password);
+	if ($#cl > -1) {
+		return $self->authorized_services($cl[0]->{clientid});
+	}
+	return 0;
+}
+
+sub authorized_services {
+	my $self=shift;
+	my $clientid=shift;
+	my @services=();
+    # Iterate over the options.
+    foreach my $pack ($self->by_clientid($clientid)) {
+        # Ignore broken guests
+        next if ($pack->{username} =~ /^c?$/ || ! $pack->{ip});
+
+        # Just get the first IP:
+        @_=split (/ /, $pack->{ip});
+        my $ip=$_[0];
+
+        # Skip any entries that don't have IPs.
+        next unless ($ip);
+		push @services, $pack->{id};
+	}
+	# Authorized services by packid.
+	return @services;
+}
+
 
 1;
