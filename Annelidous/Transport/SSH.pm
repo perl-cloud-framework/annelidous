@@ -29,7 +29,7 @@ sub new {
     my $class   = ref($invocant) || $invocant;
 
 	my $self={
-	    use_openssh=>0,
+	    use_openssh=>1,
 	    username=>'root',
 		-host=>'',
 	    @_
@@ -90,6 +90,7 @@ sub exec {
 		while(<SSHCONN>) {
 			$result.=$_;
 		}
+		close SSHCONN;
 		return [$?, $result];
     } else {
         $self->_session->cmd(join (" ",@exec));

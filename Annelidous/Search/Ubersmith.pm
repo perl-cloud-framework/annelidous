@@ -41,6 +41,30 @@ sub new {
 }
 
 #
+# CPU lookup table.
+# TODO: lookup_cpu is static, must be made dynamic...
+#
+sub lookup_cpu {
+    my $self=shift;
+    my $plan=shift;
+    #$self->memhash{$plan};
+    my $cpuhash={
+        vi05=>1,
+        vi06=>1,
+        vi10=>1,
+        vi11=>1,
+        vi20=>1,
+        vi40=>1,
+        gvs=>2,
+        gvm=>2,
+        gvl=>2,
+        gvx=>2
+    };
+    return $cpuhash->{$plan};
+}
+
+
+#
 # Memory lookup table.
 # TODO: lookup_mem is static, must be made dynamic...
 #
@@ -80,6 +104,7 @@ sub _find {
     my $sth6=$self->{dbh}->prepare("select concat(substr(addr,1,4),':',substr(addr,5,4),':',substr(addr,9,4),':',substr(addr,13,4),':',substr(addr,17,4),':',substr(addr,21,4),':',substr(addr,25,4),':',substr(addr,29,4),substr(addr,33,4)) as ip6 from ip_assignments where ip_assignments.service_id=? and strcmp('0000',substr(addr,1,4))");
 
     foreach my $client (@cl) {
+		$client->{'cpu_count'}=$self->lookup_cpu($client->{'plan'});
 		$client->{'memory'}=$self->lookup_mem($client->{'plan'});
         
         $sth->execute($client->{'id'});

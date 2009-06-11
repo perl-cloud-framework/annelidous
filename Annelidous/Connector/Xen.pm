@@ -52,7 +52,7 @@ sub rescue {
 	my $hostname=$self->vm->get_host();
 	my $guestVG="XenDomains";
 	my $swapVG="XenDomains";
-	if ($hostname =~ /fury.grokthis.net/) {
+	if ($hostname =~ /(rorschach|fury)\.grokthis\.net/i) {
 		$guestVG="SanXenDomains";
 		$swapVG="XenSwap";
 	}
@@ -70,7 +70,7 @@ sub rescue {
     #"disk='phy:mapper/XenDomains-".$guest->{username}."swap,sda2,w'",
     "root='/dev/sda1 ro'",
     "extra='init=/bin/sh console=xvc0'",
-    "vcpus=1");
+    "vcpus=".$guest->{cpu_count});
     #print join " ", @exec;
     $self->transport()->exec(@exec);
 
@@ -93,7 +93,7 @@ sub boot {
 	my $hostname=$self->vm->get_host();
 	my $guestVG="XenDomains";
 	my $swapVG="XenDomains";
-	if ($hostname =~ /fury.grokthis.net/) {
+	if ($hostname =~ /(rorschach|fury)\.grokthis\.net/i) {
 		$guestVG="SanXenDomains";
 		$swapVG="XenSwap";
 	}
@@ -137,7 +137,6 @@ sub shutdown {
 sub status {
     my $self=shift;
     my $ret=${$self->transport->exec("xm","list",$self->vm->data->{username})}[0];
-	$ret=$ret >> 8;
 	return ($ret)?0:1;
 }
 
