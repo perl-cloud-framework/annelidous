@@ -186,6 +186,11 @@ sub find_byusername {
     my $username=shift;
     return $self->find("and username regexp ?", $username);
 }
+sub find_active_byusername {
+    my $self=shift;
+    my $username=shift;
+    return $self->find_active("and username regexp ?", $username);
+}
 
 sub by_id {
     my $self=shift;
