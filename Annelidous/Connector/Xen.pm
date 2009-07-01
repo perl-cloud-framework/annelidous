@@ -86,6 +86,12 @@ sub rescue {
 # takes a client_pool as argument 
 sub boot {
     my $self=shift;
+
+	# If already running...
+	if ($self->status == 1) {
+		return 1;
+	}
+
     my $guest=$self->vm->data;
 
     #my @userinfo=getpwent($guest->{username});
@@ -97,6 +103,9 @@ sub boot {
 		$guestVG="SanXenDomains";
 		$swapVG="XenSwap";
 	}
+
+    $self->transport()->exec('lvcreate','-L',$guest->{'memory'}*2,'-n',$guest->{username}."swap",$swapVG);
+    $self->transport()->exec('mkswap','/dev/'.$swapVG.'/'.$guest->{username}.'swap');
 
     #print "Starting guest: ".$guest->{username}."\n";
     my @exec=("xm","create",
@@ -122,6 +131,8 @@ sub boot {
         my @exec2=("ifconfig",$guest->{username},"inet6","add",$guest->{ip6router});
         $self->transport->exec(@exec2);
     }
+
+	return 0;
 }
 
 sub destroy {
