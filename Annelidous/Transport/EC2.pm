@@ -21,7 +21,7 @@
 # TODO: Finish Transport::EC2
 # STUB: This file is only a stub!
 #
-package Annelidous::Transport::Vertebra;
+package Annelidous::Transport::EC2;
 use base ('Annelidous::Transport','Net::Amazon::EC2');
 
 use Net::Amazon::EC2;

@@ -83,10 +83,10 @@ sub exec {
     my $self=shift;
     my @exec=@_;
 	my $hostname=$self->get_host();
-    
+   
     if ($self->{use_openssh}) {
 		my $result;
-        open(SSHCONN,'-|','/usr/bin/ssh','-i','/etc/ssh/id_rsa_vps',"-l",$self->{username},$hostname,@exec);
+        open(SSHCONN,'-|','/usr/bin/ssh','-i','/etc/ssh/id_rsa_vps',"-l",$self->{username},$hostname,@exec,'2>/dev/null');
 		while(<SSHCONN>) {
 			$result.=$_;
 		}

@@ -141,13 +141,13 @@ sub get_host {
     my $guest=$self->data;
 	my $hostname;
 
-    if (defined ($guest->{host})) {
+    #if (defined ($guest->{host})) {
         $hostname=$guest->{host};
-    } elsif (defined ($guest->{cluster})) {
-        $hostname=$self->search->get_cluster($guest->{cluster})->get_host;
-    } else {
-        $hostname=$self->search->get_default_cluster()->get_host;
-    }
+#    } elsif (defined ($guest->{cluster})) {
+#        $hostname=$self->search->get_cluster($guest->{cluster})->get_host;
+#    } else {
+#        $hostname=$self->search->get_default_cluster()->get_host;
+#    }
 	return $hostname;
 }
 

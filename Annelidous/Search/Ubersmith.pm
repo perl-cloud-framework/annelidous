@@ -49,16 +49,19 @@ sub lookup_cpu {
     my $plan=shift;
     #$self->memhash{$plan};
     my $cpuhash={
-        vi05=>1,
-        vi06=>1,
-        vi10=>1,
-        vi11=>1,
-        vi20=>1,
-        vi40=>1,
-        gvs=>2,
-        gvm=>2,
-        gvl=>2,
-        gvx=>2
+        vi05=>2,
+        vi06=>2,
+        vi10=>2,
+        vi11=>2,
+        vi20=>2,
+        vi40=>2,
+        gvs=>4,
+        gvm=>4,
+        gvl=>4,
+        gvx=>4,
+		v145c2=>2,
+		v35c2=>2,
+		v55c2=>2
     };
     return $cpuhash->{$plan};
 }
@@ -73,16 +76,19 @@ sub lookup_mem {
     my $plan=shift;
     #$self->memhash{$plan};
     my $memhash={
-        vi05=>64,
-        vi06=>64,
-        vi10=>128,
-        vi11=>128,
-        vi20=>256,
-        vi40=>512,
-        gvs=>96,
-        gvm=>128,
-        gvl=>256,
-        gvx=>512
+        vi05=>96,
+        vi06=>96,
+        vi10=>192,
+        vi11=>192,
+        vi20=>320,
+        vi40=>768,
+        gvs=>96, #256
+        gvm=>128, #320,
+        gvl=>256, #768,
+        gvx=>512, #1024,
+		v145c2=>2048,
+		v35c2=>512,
+		v55c2=>1024
     };
     return $memhash->{$plan};
 }
@@ -230,6 +236,13 @@ sub find_byhost {
     my $hostname=shift;
     return $self->find ("and servername=?", $hostname);
 }
+
+sub find_active_byhost {
+    my $self=shift;
+    my $hostname=shift;
+    return $self->find_active ("and servername=?", $hostname);
+}
+
 
 sub get_default_cluster {
 	my $self=shift;

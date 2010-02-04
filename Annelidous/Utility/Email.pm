@@ -28,12 +28,33 @@ package Annelidous::Utility::Email;
 use MIME::Lite::TT;
 
 sub new {
-	my $self={
-	    @_
-	};
+	my $self={}; #={
+	#    @_
+	#};
 	bless $self, shift;
 	return $self;
 }
+
+sub email {
+	my $self=shift;
+    my $template = shift;
+    my $subject = shift;
+    my $from = shift;
+    my $cl = shift;
+
+	my $msg = MIME::Lite::TT->new(
+		From => $from,
+		To => $cl->{'email'},
+		Subject => $subject,
+		Template => $template,
+		TmplOptions => {
+			INCLUDE_PATH => '/etc/cloudinf/email.templates'
+		},
+		TmplParams => $cl
+	);
+	$msg->send;
+}
+
 
 # where @to is a client-list or any array of hashes containing key email.
 # args (template, subject, from, (ClientList) @cl)
@@ -45,17 +66,18 @@ sub email_list {
     my @cl = @_;
 
     foreach my $client (@cl) {
-        my $msg = MIME::Lite::TT->new(
-            From => $from,
-            To => $client->{'email'},
-            Subject => $subject,
-            Template => $template,
-            TmplOptions => {
-                INCLUDE_PATH => 'email-tmpl'
-            },
-            TmplParams => $client
-        );
-        $msg->send;
+        $self->email($template,$subject,$from,$client);
+#		my $msg = MIME::Lite::TT->new(
+#            From => $from,
+#            To => $client->{'email'},
+#            Subject => $subject,
+#            Template => $template,
+#            TmplOptions => {
+#                INCLUDE_PATH => '/etc/cloudinf/email.templates'
+#            },
+#            TmplParams => $client
+#        );
+#        $msg->send;
     }
 }
 
