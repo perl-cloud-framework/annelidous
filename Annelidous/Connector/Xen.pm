@@ -573,13 +573,13 @@ sub get_storage {
 			-path=>"phy:mapper/XenSwap-".$guest->{username}."swap");
 	} elsif ($hostname =~ /206\.251\.37\.235/) {
 		my $volume="array002/".$guest->{username};
-		my $iss=from_json(get "http://206.251.37.252:8080/iscsitadm/target/".$volume);
+		my $iss=from_json(get "http://XXX:8080/iscsitadm/target/".$volume);
 		push @storage, Annelidous::Storage->new(
 			-class=>'iSCSI',
 			-dev=>'sda1',
 			-description=>'Root Filesystem',
 			#-path=>"iscsi:".$iss->{$volume}->{'iSCSI Name'});
-			-path=>"phy:/dev/disk/by-path/ip-10.1.0.1:3260-iscsi-".$iss->{$volume}->{'iSCSI Name'}."-lun-0");
+			-path=>"phy:/dev/disk/by-path/ip-XXX:3260-iscsi-".$iss->{$volume}->{'iSCSI Name'}."-lun-0");
 		push @storage, Annelidous::Storage->new(
 			-class=>'LVM',
 			-dev=>'sdb1',
