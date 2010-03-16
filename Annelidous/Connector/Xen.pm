@@ -112,6 +112,59 @@ sub boot_rescue {
 
 # Launch client guest OS...
 # takes a client_pool as argument 
+sub boot_pvgrub_part {
+    my $self=shift;
+	my $console=shift;
+	if (defined $console) {
+		$console="-c";
+	} else {
+		$console="-q";
+	}
+
+	# If already running...
+	if ($self->status == 1) {
+		return;
+	}
+
+    my $guest=$self->vm->data;
+	my $hostname=$guest->{host};
+
+    #print "Starting guest: ".$guest->{username}."\n";
+    my @exec=("xm","create",
+    "/dev/null",
+	$console,
+    "name='".$guest->{username}."'",
+    "memory=".$guest->{'memory'},
+    "vif='vifname=".$guest->{username}.",ip=".$guest->{ip4}."'",
+	"kernel='/usr/lib/xen/boot/pv-grub-x86_".$guest->{bitness}.".gz'",
+	"extra='(hd0,0)/boot/grub/menu.lst'",
+    "vcpus=".$guest->{cpu_count});
+
+	# Retrieve & assign storage devices
+	foreach my $dev ($self->get_storage()) {
+		#if ( $dev->{'-description'} =~ /root/i ) {
+		#	push @exec, "root='/dev/".$dev->{'-dev'}." ro'";
+		#}
+		push @exec, "disk='phy:".$dev->{'-path'}.",".$dev->{'-dev'}.",w'";
+	}
+
+	#if ($console) {
+	#	print Dumper @exec;
+	#}
+    $self->transport()->exec(@exec);
+
+    # Configure IPv6 router IP for vif (no proxy arp here, we give a whole subnet)
+    if ($guest->{'ip6router'}) {
+        my @exec2=("ifconfig",$guest->{username},"inet6","add",$guest->{ip6router});
+        $self->transport->exec(@exec2);
+    }
+
+	return 0;
+}
+
+
+# Launch client guest OS...
+# takes a client_pool as argument 
 sub boot_pvgrub {
     my $self=shift;
 	my $console=shift;
@@ -142,15 +195,15 @@ sub boot_pvgrub {
 
 	# Retrieve & assign storage devices
 	foreach my $dev ($self->get_storage()) {
-		if ( $dev->{'-description'} =~ /root/i ) {
-			push @exec, "root='/dev/".$dev->{'-dev'}." ro'";
-		}
+		#if ( $dev->{'-description'} =~ /root/i ) {
+		#	push @exec, "root='/dev/".$dev->{'-dev'}." ro'";
+		#}
 		push @exec, "disk='phy:".$dev->{'-path'}.",".$dev->{'-dev'}.",w'";
 	}
 
-	if ($console) {
-		print Dumper @exec;
-	}
+	#if ($console) {
+	#	print Dumper @exec;
+	#}
     $self->transport()->exec(@exec);
 
     # Configure IPv6 router IP for vif (no proxy arp here, we give a whole subnet)
@@ -274,7 +327,8 @@ sub boot_pv {
 
     # Configure IPv6 router IP for vif (no proxy arp here, we give a whole subnet)
     if ($guest->{'ip6router'}) {
-        my @exec2=("ifconfig",$guest->{username},"inet6","add",$guest->{ip6router});
+        #my @exec2=("ifconfig",$guest->{username},"inet6","add",$guest->{ip6router});
+        my @exec2=("ip","addr","add",$guest->{ip6router},"dev",$guest->{username});
         $self->transport->exec(@exec2);
     }
 
@@ -342,6 +396,11 @@ sub pause {
 sub unpause {
     my $self=shift;
     return $self->transport->exec("xm","unpause",$self->vm->data->{username});
+}
+
+sub bw {
+    my $self=shift;
+    return $self->transport->tty("vnstat","-m","-i",$self->vm->data->{username});
 }
 
 sub _lock {
@@ -499,7 +558,7 @@ sub new {
 
 	$self->{_bmethods}={};
 	$self->{_bmethods}->{pv} = \&boot_pv;
-	$self->{_bmethods}->{pvgrub} = \&boot_pv_grub;
+	$self->{_bmethods}->{pvgrub} = \&boot_pvgrub;
 	$self->{_bmethods}->{pvgrub_part} = \&boot_pvgrub_part;
 	$self->{_bmethods}->{pv_part} = \&boot_pv_part;
 
